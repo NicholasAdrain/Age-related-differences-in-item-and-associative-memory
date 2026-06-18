@@ -18,7 +18,7 @@ from psychopy import visual, core, event, gui, data, logging
 #   "pam_all"      – runs all three PAM conditions in sequence (with breaks)
 #   "all"          – runs everything: item, scene, then all three PAM conditions
 
-EXPERIMENT_MODE = "item"
+EXPERIMENT_MODE = "pam_all"
 
 # ─── Experiment Settings ─────────────────────────────────────────────────────
 FIXATION_DUR              = 0.5
@@ -55,6 +55,7 @@ LABEL_OUTDOOR = "Outdoor"
 BTN_BLUE = "#3a7ca5"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PAM_BASE_DIR = os.path.join(os.path.dirname(BASE_DIR), "PAM_memory")
 
 
 # ─── Helper: load a labelled folder ──────────────────────────────────────────
@@ -146,12 +147,12 @@ SCENE_REC_CATCH_TRIALS = [
 ]
 
 # ─── PAM Stimulus Paths ───────────────────────────────────────────────────────
-PAM_OBJ_PAIRS_DIR  = os.path.join(BASE_DIR, "pam_objects", "pairs")
-PAM_OBJ_PRAC_DIR   = os.path.join(BASE_DIR, "pam_objects", "practice")
-PAM_SC_PAIRS_DIR   = os.path.join(BASE_DIR, "pam_scenes",  "pairs")
-PAM_SC_PRAC_DIR    = os.path.join(BASE_DIR, "pam_scenes",  "practice")
-PAM_IS_PAIRS_DIR   = os.path.join(BASE_DIR, "pam_itemscene", "pairs")
-PAM_IS_PRAC_DIR    = os.path.join(BASE_DIR, "pam_itemscene", "practice")
+PAM_OBJ_PAIRS_DIR  = os.path.join(PAM_BASE_DIR, "pam_objects", "pairs")
+PAM_OBJ_PRAC_DIR   = os.path.join(PAM_BASE_DIR, "pam_objects", "practice")
+PAM_SC_PAIRS_DIR   = os.path.join(PAM_BASE_DIR, "pam_scenes",  "pairs")
+PAM_SC_PRAC_DIR    = os.path.join(PAM_BASE_DIR, "pam_scenes",  "practice")
+PAM_IS_PAIRS_DIR   = os.path.join(PAM_BASE_DIR, "pam_itemscene", "pairs")
+PAM_IS_PRAC_DIR    = os.path.join(PAM_BASE_DIR, "pam_itemscene", "practice")
 
 PAM_OBJ_PAIR_LIST = [
     {"image_a": "bacon.png",              "image_b": "postalmailbox01.png"},
@@ -308,21 +309,35 @@ if not dlg.OK:
 exp_info["date"] = data.getDateStr()
 
 # --- Data Logging ---------------------------------------------------------
-os.makedirs("data", exist_ok=True)
-filename = os.path.join(
-    "data",
+# ─── Data Logging ────────────────────────────────────────────────────────────
+os.makedirs(os.path.join("data", "item_memory"), exist_ok=True)
+os.makedirs(os.path.join("data", "PAM_memory"), exist_ok=True)
+
+item_filename = os.path.join(
+    "data", "item_memory",
     f"sub-{exp_info['Participant ID']}_ses-{exp_info['Session']}_encoding_{exp_info['date']}"
 )
-logging.LogFile(filename + ".log", level=logging.EXP)
+pam_filename = os.path.join(
+    "data", "PAM_memory",
+    f"sub-{exp_info['Participant ID']}_ses-{exp_info['Session']}_encoding_{exp_info['date']}"
+)
+
+logging.LogFile(item_filename + ".log", level=logging.EXP)
 logging.console.setLevel(logging.WARNING)
 
 exp_handler = data.ExperimentHandler(
     name="ItemMemoryEncoding",
     version="5.0",
     extraInfo=exp_info,
-    dataFileName=filename,
+    dataFileName=item_filename,
 )
 
+pam_exp_handler = data.ExperimentHandler(
+    name="PAMEncoding",
+    version="5.0",
+    extraInfo=exp_info,
+    dataFileName=pam_filename,
+)
 # --- Results Accumulator ---------------------------------------------------
 results_store = {
     "item": {
@@ -908,7 +923,7 @@ def run_recognition_practice_block(rec_prac_list, scene_mode=False, pam_mode=Fal
             accuracy = 1
         else:
             label = "shown earlier" if prac["status"] == "old" else f"a new {noun}"
-            feedback_text.setText(f"Incorrect -- this {noun} was {label}.")
+            feedback_text.setText(f"Incorrect - this {noun} was {label}.")
             feedback_text.color = "#ff4444"
             wrong_counts[prac["image"]] += 1
             if wrong_counts[prac["image"]] < MAX_WRONG_PER_ITEM:
@@ -1078,7 +1093,7 @@ def run_distractor():
     )
     wait_for_space(distract_intro)
 
-    DISTRACT_DURATION = 10
+    DISTRACT_DURATION = 60
     start_time    = global_clock.getTime()
     problem_text  = visual.TextStim(win, text="", height=40, color=TEXT_COLOUR)
     response_box  = visual.TextStim(win, text="", height=40, color="blue", pos=(0, -80))
@@ -2072,12 +2087,13 @@ def compute_pam_summary(enc_pairs, rec_trials, catch_rec):
     }
 
 
-summary_filename = os.path.join(
-    "data",
+# ─── Item/Scene summary ───────────────────────────────────────────────────────
+item_summary_filename = os.path.join(
+    "data", "item_memory",
     f"sub-{exp_info['Participant ID']}_ses-{exp_info['Session']}_summary_{exp_info['date']}.csv"
 )
 
-with open(summary_filename, "w", newline="", encoding="utf-8") as f:
+with open(item_summary_filename, "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
 
     standard_experiments = []
@@ -2095,7 +2111,6 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
 
         writer.writerow([f"===== {exp_label} ====="])
         writer.writerow([])
-
         writer.writerow(["--- ENCODING TASK: OVERALL SUMMARY ---"])
         writer.writerow(["Metric", "Value"])
         writer.writerow(["Total trials",                  s["enc_total"]])
@@ -2104,7 +2119,6 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
         writer.writerow(["No input (no response)",         s["enc_no_input"]])
         writer.writerow(["Overall score (Hits - Misses)",  s["enc_score"]])
         writer.writerow([])
-
         writer.writerow(["--- RECOGNITION TASK: OVERALL SUMMARY ---"])
         writer.writerow(["Metric", "Value"])
         writer.writerow(["Total trials",                  s["rec_total"]])
@@ -2112,7 +2126,6 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
         writer.writerow(["Misses (wrong)",                 s["rec_misses"]])
         writer.writerow(["Overall score (Hits - Misses)",  s["rec_score"]])
         writer.writerow([])
-
         writer.writerow(["--- CATCH TRIALS: OVERALL SUMMARY ---"])
         writer.writerow(["Phase", "Correct", "Total", "Accuracy (%)"])
         enc_pct = (round(100 * s["catch_enc_correct"] / s["catch_enc_total"], 1)
@@ -2122,7 +2135,6 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
         writer.writerow(["Encoding",    s["catch_enc_correct"], s["catch_enc_total"], enc_pct])
         writer.writerow(["Recognition", s["catch_rec_correct"], s["catch_rec_total"], rec_pct])
         writer.writerow([])
-
         writer.writerow(["--- ENCODING TASK: PER-IMAGE RESULTS ---"])
         writer.writerow(["Image", "Correct Answer", "Response",
                          "Encoding Correct?", "Recognition Correct?"])
@@ -2136,7 +2148,6 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
                 "Yes" if rec_correct == 1 else ("No" if rec_correct == 0 else rec_correct),
             ])
         writer.writerow([])
-
         writer.writerow(["--- RECOGNITION TASK: NEW ITEMS ---"])
         writer.writerow(["Image", "Status", "Response", "Correct?"])
         for t in rec_trials:
@@ -2144,14 +2155,12 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
                 writer.writerow([t["image"], "new", t["response"],
                                  "Yes" if t["accuracy"] == 1 else "No"])
         writer.writerow([])
-
         writer.writerow(["--- CATCH TRIALS: ENCODING DETAIL ---"])
         writer.writerow(["Catch #", "Required Response", "Participant Response", "Correct?"])
         for c in catch_enc:
             writer.writerow([f"Catch {c['catch_num']}", c["correct_label"],
                              c["response"], "Yes" if c["accuracy"] == 1 else "No"])
         writer.writerow([])
-
         writer.writerow(["--- CATCH TRIALS: RECOGNITION DETAIL ---"])
         writer.writerow(["Catch #", "Required Response", "Participant Response", "Correct?"])
         for c in catch_rec:
@@ -2159,6 +2168,15 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
                              c["response"], "Yes" if c["accuracy"] == 1 else "No"])
         writer.writerow([])
         writer.writerow([])
+
+# ─── PAM summary ─────────────────────────────────────────────────────────────
+pam_summary_filename = os.path.join(
+    "data", "PAM_memory",
+    f"sub-{exp_info['Participant ID']}_ses-{exp_info['Session']}_summary_{exp_info['date']}.csv"
+)
+
+with open(pam_summary_filename, "w", newline="", encoding="utf-8") as f:
+    writer = csv.writer(f)
 
     pam_experiments = []
     if EXPERIMENT_MODE in ("pam_objects",   "pam_all", "all"):
@@ -2176,12 +2194,10 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
 
         writer.writerow([f"===== {exp_label} ====="])
         writer.writerow([])
-
         writer.writerow(["--- ENCODING: PAIRS PRESENTED ---"])
         writer.writerow(["Metric", "Value"])
         writer.writerow(["Total pairs shown", s["enc_pairs_total"]])
         writer.writerow([])
-
         writer.writerow(["--- RECOGNITION TASK: OVERALL SUMMARY ---"])
         writer.writerow(["Metric", "Value"])
         writer.writerow(["Total trials",                  s["rec_total"]])
@@ -2189,20 +2205,17 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
         writer.writerow(["Misses (wrong)",                 s["rec_misses"]])
         writer.writerow(["Overall score (Hits - Misses)",  s["rec_score"]])
         writer.writerow([])
-
         writer.writerow(["--- CATCH TRIALS: RECOGNITION SUMMARY ---"])
         writer.writerow(["Correct", "Total", "Accuracy (%)"])
         rec_pct = (round(100 * s["catch_rec_correct"] / s["catch_rec_total"], 1)
                    if s["catch_rec_total"] else "N/A")
         writer.writerow([s["catch_rec_correct"], s["catch_rec_total"], rec_pct])
         writer.writerow([])
-
         writer.writerow(["--- ENCODING: PAIRS DETAIL ---"])
         writer.writerow(["Pair #", "Image A", "Image B"])
         for p in enc_pairs:
             writer.writerow([p["pair_num"], p["image_a"], p["image_b"]])
         writer.writerow([])
-
         writer.writerow(["--- RECOGNITION TASK: PER-PAIR RESULTS ---"])
         writer.writerow(["Image A", "Image B", "Status", "Response", "Correct?"])
         for t in rec_trials:
@@ -2213,7 +2226,6 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
                 "Yes" if t["accuracy"] == 1 else "No",
             ])
         writer.writerow([])
-
         writer.writerow(["--- CATCH TRIALS: RECOGNITION DETAIL ---"])
         writer.writerow(["Catch #", "Required Response", "Participant Response", "Correct?"])
         for c in catch_rec:
@@ -2221,7 +2233,6 @@ with open(summary_filename, "w", newline="", encoding="utf-8") as f:
                              c["response"], "Yes" if c["accuracy"] == 1 else "No"])
         writer.writerow([])
         writer.writerow([])
-
 
 # ═════════════════════════════════════════════════════════════════════════════
 # END
@@ -2242,5 +2253,6 @@ win.flip()
 event.waitKeys(keyList=["space", "escape"])
 
 exp_handler.close()
+pam_exp_handler.close()
 win.close()
 core.quit()
