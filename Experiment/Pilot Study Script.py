@@ -18,7 +18,7 @@ from psychopy import visual, core, event, gui, data, logging
 #   "pam_all"      – runs all three PAM conditions in sequence (with breaks)
 #   "all"          – runs everything: item, scene, then all three PAM conditions
 
-EXPERIMENT_MODE = "pam_all"
+EXPERIMENT_MODE = "both"
 
 # ─── Experiment Settings ─────────────────────────────────────────────────────
 FIXATION_DUR              = 0.5
@@ -55,7 +55,7 @@ LABEL_OUTDOOR = "Outdoor"
 BTN_BLUE = "#3a7ca5"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PAM_BASE_DIR = os.path.join(os.path.dirname(BASE_DIR), "PAM_memory")
+PAM_BASE_DIR = os.path.join(BASE_DIR, "PAM_memory")
 
 
 # ─── Helper: load a labelled folder ──────────────────────────────────────────
@@ -84,21 +84,22 @@ def load_labelled_folder(base_dir, labels):
 ITEM_LABELS  = ["Metal", "Not Metal"]
 SCENE_LABELS = ["Indoor", "Outdoor"]
 
-STIMULI_DIR              = os.path.join(BASE_DIR, "stimuli")
-PRACTICE_DIR             = os.path.join(BASE_DIR, "practice")
-PRACTICE_NOCUE_DIR       = os.path.join(BASE_DIR, "practice_nocue")
-SCENE_PRACTICE_NOCUE_DIR = os.path.join(BASE_DIR, "practice_nocue_scenes")
-REC_PRACTICE_DIR         = os.path.join(BASE_DIR, "recognition_practice")
+ITEM_MEMORY_DIR           = os.path.join(BASE_DIR, "item_memory")
+STIMULI_DIR               = os.path.join(ITEM_MEMORY_DIR, "stimuli")
+PRACTICE_DIR              = os.path.join(ITEM_MEMORY_DIR, "practice")
+PRACTICE_NOCUE_DIR        = os.path.join(ITEM_MEMORY_DIR, "practice_nocue")
+SCENE_PRACTICE_NOCUE_DIR  = os.path.join(ITEM_MEMORY_DIR, "practice_nocue_scenes")
+REC_PRACTICE_DIR          = os.path.join(ITEM_MEMORY_DIR, "recognition_practice")
 
 STIMULUS_LIST          = load_labelled_folder(STIMULI_DIR,       ITEM_LABELS)
 PRACTICE_FEEDBACK_LIST = load_labelled_folder(PRACTICE_DIR,      ITEM_LABELS)
 PRACTICE_NOCUE_LIST    = load_labelled_folder(PRACTICE_NOCUE_DIR, ITEM_LABELS)
 
 # ─── SCENE Experiment Stimuli ─────────────────────────────────────────────────
-SCENE_STIMULI_DIR      = os.path.join(BASE_DIR, "stimuli_scenes")
-SCENE_PRACTICE_DIR     = os.path.join(BASE_DIR, "practice_scenes")
-SCENE_REC_PRACTICE_DIR = os.path.join(BASE_DIR, "rec_practice_scenes")
-SCENE_REC_NEW_DIR      = os.path.join(BASE_DIR, "recognition_new_scenes")
+SCENE_STIMULI_DIR      = os.path.join(ITEM_MEMORY_DIR, "stimuli_scenes")
+SCENE_PRACTICE_DIR     = os.path.join(ITEM_MEMORY_DIR, "practice_scenes")
+SCENE_REC_PRACTICE_DIR = os.path.join(ITEM_MEMORY_DIR, "rec_practice_scenes")
+SCENE_REC_NEW_DIR      = os.path.join(ITEM_MEMORY_DIR, "recognition_new_scenes")
 
 SCENE_REC_NEW_LIST = [
     {"image": fname, "correct": "new"}
@@ -1758,7 +1759,7 @@ if EXPERIMENT_MODE in ("both", "item", "all"):
     # Recognition
     item_rec_sequence = build_recognition_sequence(
         STIMULUS_LIST, STIMULI_DIR,
-        None, os.path.join(BASE_DIR, "recognition_new"),
+        None, os.path.join(ITEM_MEMORY_DIR, "recognition_new"),
         len(STIMULUS_LIST), REC_CATCH_TRIALS,
     )
     rec_test_intro = visual.TextStim(
