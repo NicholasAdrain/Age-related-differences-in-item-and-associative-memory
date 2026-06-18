@@ -18,7 +18,7 @@ from psychopy import visual, core, event, gui, data, logging
 #   "pam_all"      – runs all three PAM conditions in sequence (with breaks)
 #   "all"          – runs everything: item, scene, then all three PAM conditions
 
-EXPERIMENT_MODE = "both"
+EXPERIMENT_MODE = "pam_all"
 
 # ─── Experiment Settings ─────────────────────────────────────────────────────
 FIXATION_DUR              = 0.5
@@ -463,7 +463,7 @@ pam_practice_heading = visual.TextStim(
 )
 pam_practice_instruction = visual.TextStim(
     win,
-    text="Try to imagine the two images interacting with one another.",
+    text="Try to imagine the following pairs of images interacting with one another.",
     height=28, color=TEXT_COLOUR,
     pos=(0, win.size[1] // 2 - 130), wrapWidth=800, alignText="center",
 )
