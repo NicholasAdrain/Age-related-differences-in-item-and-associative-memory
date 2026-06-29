@@ -310,7 +310,6 @@ if not dlg.OK:
 exp_info["date"] = data.getDateStr()
 
 # --- Data Logging ---------------------------------------------------------
-# ─── Data Logging ────────────────────────────────────────────────────────────
 os.makedirs(os.path.join("data", "item_memory"), exist_ok=True)
 os.makedirs(os.path.join("data", "PAM_memory"), exist_ok=True)
 
@@ -739,9 +738,7 @@ def build_recognition_sequence(stim_list, stimuli_dir, new_item_template,
     return sequence
 
 
-# =============================================================================
-# REUSABLE BLOCK RUNNERS
-# =============================================================================
+# --- Block runners ------------------------------------------------------------------
 
 def run_practice_feedback_block(prac_list, prac_dir, scene_mode=False):
     wrong_counts = {item["image"]: 0 for item in prac_list}
@@ -1334,7 +1331,7 @@ def build_pam_pair_recognition_sequence(pair_list, pairs_dir, n_targets=12, catc
             f"Only {N} pairs available."
         )
 
-    # Shuffle all pairs and split into two completely separate halves
+   # Shuffle trials
     all_indices = list(range(N))
     random.shuffle(all_indices)
     old_idx  = all_indices[:n_targets]           # pairs shown intact as OLD
@@ -1353,18 +1350,11 @@ def build_pam_pair_recognition_sequence(pair_list, pairs_dir, n_targets=12, catc
             "folder":  pairs_dir,
         })
 
-    # NEW (recombined) trials — take image_a from one new_idx pair
-    # and image_b from a DIFFERENT new_idx pair, so no image repeats.
-    # We do this by pairing new_idx[i]["image_a"] with new_idx[i+1]["image_b"]
-    # (rotating by 1 guarantees no original pair is recreated and every
-    # image appears exactly once).
+    # Recombined trials
     new_pairs = [pair_list[idx] for idx in new_idx]
     a_images  = [p["image_a"] for p in new_pairs]
     b_images  = [p["image_b"] for p in new_pairs]
-    # Rotate b_images by 1 so no a+b combination matches an original pair
     b_images_rotated = b_images[1:] + b_images[:1]
-
-    # Safety check: if rotation recreates any original pair, rotate further
     original_pairs = {(p["image_a"], p["image_b"]) for p in pair_list}
     max_rotations  = len(b_images)
     rotation       = 1
@@ -1667,9 +1657,7 @@ def run_full_pam_condition(
 
         
         
-# =============================================================================
-# ITEM EXPERIMENT
-# =============================================================================
+# ─── ITEM Experiment ──────────────────────────────────────────────────
 
 if EXPERIMENT_MODE in ("both", "item", "all"):
 
@@ -1782,9 +1770,7 @@ if EXPERIMENT_MODE in ("both", "item", "all"):
         wait_for_space(end_text, timeout=120, countdown_from=30)
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# SCENE EXPERIMENT
-# ═════════════════════════════════════════════════════════════════════════════
+# ─── Scene Experiment ──────────────────────────────────────────────────
 
 if EXPERIMENT_MODE in ("both", "scene", "all"):
 
@@ -1898,9 +1884,7 @@ if EXPERIMENT_MODE in ("both", "scene", "all"):
         show_break_screen(duration=120)
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# PAM: OBJECT PAIRS
-# ═════════════════════════════════════════════════════════════════════════════
+# ─── PAM Object pairs ──────────────────────────────────────────────────
 
 if EXPERIMENT_MODE in ("pam_objects", "pam_all", "all"):
 
@@ -1943,10 +1927,7 @@ if EXPERIMENT_MODE in ("pam_objects", "pam_all", "all"):
     if EXPERIMENT_MODE in ("pam_all", "all"):
         show_break_screen(duration=120)
 
-
-# ═════════════════════════════════════════════════════════════════════════════
-# PAM: SCENE PAIRS
-# ═════════════════════════════════════════════════════════════════════════════
+# ─── PAM Scene pairs  ──────────────────────────────────────────────────
 
 if EXPERIMENT_MODE in ("pam_scenes", "pam_all", "all"):
 
@@ -1991,9 +1972,7 @@ if EXPERIMENT_MODE in ("pam_scenes", "pam_all", "all"):
         show_break_screen(duration=120)
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# PAM: ITEM-SCENE PAIRS
-# ═════════════════════════════════════════════════════════════════════════════
+# ─── PAM object-scene pairs ──────────────────────────────────────────────────
 
 if EXPERIMENT_MODE in ("pam_itemscene", "pam_all", "all"):
 
@@ -2036,9 +2015,7 @@ if EXPERIMENT_MODE in ("pam_itemscene", "pam_all", "all"):
     )
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# GENERATE SUMMARY OUTPUT FILE
-# ═════════════════════════════════════════════════════════════════════════════
+# ─── Output summary file ──────────────────────────────────────────────────
 
 def compute_summary(enc_trials, rec_trials, catch_enc, catch_rec):
     enc_hits     = sum(1 for t in enc_trials if t["accuracy"] == 1)
@@ -2235,9 +2212,7 @@ with open(pam_summary_filename, "w", newline="", encoding="utf-8") as f:
         writer.writerow([])
         writer.writerow([])
 
-# ═════════════════════════════════════════════════════════════════════════════
-# END
-# ═════════════════════════════════════════════════════════════════════════════
+# ─── END ──────────────────────────────────────────────────
 
 final_end = visual.TextStim(
     win,
