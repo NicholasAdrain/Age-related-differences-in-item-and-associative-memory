@@ -1,5 +1,6 @@
 **29/06/2026**
-- Run new objects and scenes through the SHINE toolbox. 
+- Run new objects and scenes through the SHINE toolbox.
+- Update the PIS and consent form
 
 
 **25/06/2026**
