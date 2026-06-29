@@ -1,3 +1,9 @@
+**29/06/2026**
+- Run new objects and scenes through the SHINE toolbox. 
+
+
+**25/06/2026**
+
 Screening:
 - Lowered the familiarity threshold to ≥3.0 on a 5-point scale.
 
@@ -12,6 +18,8 @@ Scene Memory Task
 Object-Scene Pairs:
 - Will replace the manequin object.
 - Will add 12 new items (6 Objects, 6 Scenes)
+
+
 
 
 
